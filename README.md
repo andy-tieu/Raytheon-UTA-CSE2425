@@ -21,4 +21,4 @@
 > [!NOTE]
 > If you are using a different camera than us, please follow the instructions given with the camera package instead as they could be different.
 
-  Once the config.txt file is properly edited, install the latest version of OpenCV by running the command `sudo apt install -y python3-opencv` and `sudo apt install -y opencv-data`. Once everything is installed properly, the program can be run by either terminal command or using a code editor on the Raspbery Pi such as Geany.
+  Once the config.txt file is properly edited, install the latest version of OpenCV by running the command `sudo apt install -y python3-opencv` and `sudo apt install -y opencv-data`. Once everything is installed properly, the program can be run by either terminal command or using a code editor on the Raspbery Pi such as Geany. If any editing is needed for the camera use, you can refer to the [Picamera2 Library](https://datasheets.raspberrypi.com/camera/picamera2-manual.pdf) for help regarding camera configurations.
