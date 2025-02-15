@@ -16,7 +16,7 @@
 ## OpenCV_test.py
   To run this program, ensure that the Raspberry Pi is updated to the latest version, and that the Pi camera module is connected to the Raspberry Pi via a ribbon cable.  
 > [!IMPORTANT]
-> The config.txt file in /boot/firmware/ **MUST** be edited to change the line `camera_autodetect=1` to `camera_autodetect=0` and also add the line `dtoverlay=imx708` in the section labeled as [all] at the very bottom of the file. You can access this directory by running `cd /boot/firmware/` or directly editing the file with `sudo nano /boot/firmware/config.txt`.
+> The config.txt file in /boot/firmware/ **MUST** be edited if you are using the same camera as us. To do this, change the line `camera_autodetect=1` to `camera_autodetect=0` and also add the line `dtoverlay=imx708` in the section labeled as [all] at the very bottom of the file. You can access this directory by running `cd /boot/firmware/` or directly accessing and editing the file with `sudo nano /boot/firmware/config.txt`.
 
 > [!NOTE]
 > If you are using a different camera than us, please follow the instructions given with the camera package instead as they could be different.
