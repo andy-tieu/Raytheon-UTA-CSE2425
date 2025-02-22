@@ -8,8 +8,9 @@ picam2.configure(config)
 picam2.start()
 time.sleep(2)
 
-arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_250)
+arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_50)
 arucoParameters = cv2.aruco.DetectorParameters_create()
+dropzone = 3
 
 try:
     while True:
@@ -41,20 +42,25 @@ try:
 
             # Idea of centering is to ensure when UAV is flying over a marker, it can reposition itself until the marker is aligned better
             # to then have the clear to send the coordinates to the UGV
-            marker_center_x = (corners[0][0][0] + corners[0][0][2]) / 2
-            marker_center_y = (corners[0][0][1] + corners[0][0][3]) / 2
-            print(f"X Center is: {marker_center_x} | Y Center is: {marker_center_y}")
+            # marker_center_x = (corners[0][0][0] + corners[0][0][2]) / 2
+            # marker_center_y = (corners[0][0][1] + corners[0][0][3]) / 2
+            # print(f"X Center is: {marker_center_x} | Y Center is: {marker_center_y}")
             
-            frame_center_x = frame.shape[1] // 2
-            frame_center_y = frame.shape[0] // 2
+            # frame_center_x = frame.shape[1] // 2
+            # frame_center_y = frame.shape[0] // 2
             
             # Offset can be changed depending on frame size and how far away we are from the ArUco marker
             # This will need to be tested to have a good idea on what offset we should have to send accurate coordinates
-            offset_x = marker_center_x - frame_center_x
-            offset_y = marker_center_y - frame_center_y
-            print(f"X Offset is: {offset_x} | Y Offset is: {offset_y}")
+            # offset_x = marker_center_x - frame_center_x
+            # offset_y = marker_center_y - frame_center_y
+            # print(f"X Offset is: {offset_x} | Y Offset is: {offset_y}")
             
             print(f"ArUco Marker with ID: {ids} detected")
+            for i in range(len(ids)):
+                if ids[i] == dropzone:
+                    print("DropZone detected")
+                else:
+                    print("Non-DropZone detected")
         else:
             print('No markers detected')
             
