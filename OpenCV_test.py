@@ -78,6 +78,12 @@ def detect_marker(picam2, arucoDict, arucoParameters, dropzone):
                         if (center_x - margin <= marker_center[0] <= center_x + margin) and (center_y - margin <= marker_center[1] <= center_y + margin):
                             print("Marker centered!")
                             # Add code to send coordinates here
+                        else:
+                            print("Moving...")
+                            # Add code to move drone closer to being centered
+                            # Issue to address: drone may be too high and give inaccurate coordinates;
+                            # need to factor in height adjustments as well (we can have drone lower to a certain altitude or
+                            # lower until no longer centered and recenter before continuing to lower until specified altitude)
                     else:
                         print("Non-DropZone detected")
             else:
