@@ -4,7 +4,7 @@ import signal
 import os
 
 # This script does the following:
-# 1.) Connects to the Pixhawk via serial on /dev/serial0.
+# 1.) Connects to the Cube Orange via serial on /dev/serial0.
 # 2.) Waits for the drone to be ready.
 # 3.) Arms the motors.
 # 4.) Takes off to 1 meter altitude.
@@ -104,7 +104,7 @@ while vehicle.location.global_relative_frame.alt > 0.1:
 print("Landed successfully!")
 
 # Close the vehicle connection
-print("Closing vehicle connection...")
+print("Logging stopped, Closing vehicle connection...")
 vehicle.close()
 
 print("Mission Complete")
