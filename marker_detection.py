@@ -1,3 +1,7 @@
+# This program detects ArUco markers using a Raspberry Pi camera and OpenCV
+# It distinguishes a specific marker separate from others as the dropzone
+# After which it will determine if the drone is centered over the dropzone and send coordinates to the UGV
+
 import time
 
 import cv2
