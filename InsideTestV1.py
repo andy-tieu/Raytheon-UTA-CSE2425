@@ -1,5 +1,4 @@
 from __future__ import print_function
-
 from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative
 from pymavlink import mavutil # Needed for command message definitions
 import time
@@ -11,7 +10,7 @@ import os
 
 """
 # This Script does the following:
-# 1.) Connects to the Pixhawk via serial on /dev/serial0.
+# 1.) Connects to the Cube Orange via serial on /dev/ttyAMA0.
 # 2.) Waits for the drone to be ready.
 # 3.) Arms the motors.
 # 4.) Takes off to 1 meter altitude.
@@ -30,9 +29,6 @@ print("Connecting to UAV CubeOrange via /ddev/ttyAMA0...")
 vehicle = connect('/dev/ttyAMA0', baud=57600, wait_ready=True)
 print("UAV Pi is successfully connected to the Cube Orange!\n")
 
-
-
-
 """
 Arms vehicle and takes off to specified altitude
 """
@@ -48,7 +44,7 @@ def arm_and_takeoff(aTargetAltitude):
     
     print("Arming motors")
     # Copter should arm in guided_nogps mode
-    vehicle.mode = VehicleMode("GUIDED")
+    vehicle.mode = VehicleMode("GUIDED_NOGPS")
     time.sleep(2)
     print(vehicle.mode)
     vehicle.armed = True
@@ -87,7 +83,6 @@ def emergency_land(signal, frame):
 
 # Attach the kill switch to SIGINT (CTRL+C)
 signal.signal(signal.SIGINT, emergency_land)
-import threading
 
 def listen_for_kill():
     """ Monitors for user input to trigger an emergency stop. """
@@ -121,12 +116,8 @@ print("Setting LAND mode...")
 vehicle.mode = VehicleMode("LAND")
 time.sleep(5)
 
-
 print("Close vehicle connection")
 vehicle.close()
-
-
-
 print("Mission Complete")
 
 

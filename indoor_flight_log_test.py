@@ -89,7 +89,7 @@ print("Drone armed. Waiting for altitude > 0.3 meters to start hover timer.")
 # Wait until altitude crosses threshold
 while True:
     current_altitude = vehicle.location.global_relative_frame.alt
-    if current_altitude > 1.0:
+    if current_altitude > 0.5:
         print(f"Altitude detected: {current_altitude:.2f} m. Starting 60-second hover timer.")
         break
     time.sleep(1)
