@@ -30,6 +30,22 @@ vehicle = connect('/dev/ttyAMA0', baud=57600, wait_ready=True)
 print("UAV Pi is successfully connected to the Cube Orange!\n")
 
 """
+Defines what velocity should be flown at
+"""
+def set_velocity(velocity_x, velocity_y, velocity_z=0):
+    msg = vehicle.message_factory.set_position_target_local_ned_encode(
+        0, 0, 0,
+        mavutil.mavlink.MAV_FRAME_BODY_NED, #coordinates are relative to the drone
+        0b0000111111000111, # bit mask, ignores everything but velocity
+        0, 0, 0,
+        velocity_x, velocity_y, velocity_z,
+        0, 0, 0,
+        0, 0
+    )
+    vehicle.send_mavlink(msg)
+    vehicle.flush()
+
+"""
 Arms vehicle and takes off to specified altitude
 """
 def arm_and_takeoff(aTargetAltitude):
@@ -55,20 +71,62 @@ def arm_and_takeoff(aTargetAltitude):
 
     print("Vehicle is taking off!")
     # Take off to specified altitude
-    vehicle.simple_takeoff(aTargetAltitude)
-    
 
     """
     Wait until vehicle has reached specified altitude before processing next command
     Any command directly after Vehicle.simple_takeoff will execute immediately 
     """
-    
+
+    climb_rate = 0.2 # m/s
+    initial_altitude = vehicle.location.global_relative_frame.alt
     while True:
         print("Altitude: ", vehicle.location.global_relative_frame.alt)
-        if vehicle.location.global_relative_frame.alt >= aTargetAltitude * 0.95:
-            print("Reached  target altitude")
+        current_altitude = vehicle.location.global_relative_frame.alt - initial_altitude
+        if current_altitude >= aTargetAltitude * 0.95:
+            print("Reached target altitude")
+            set_velocity(0, 0, 0)
             break
+
+        set_velocity(0, 0, climb_rate) #goes up if not at target altitude
         time.sleep(1)
+
+# def arm_and_takeoff(aTargetAltitude):
+#     print("Basic pre-arm checks")
+#     #Should be able to work with this not commented out but for testing, this part being skippable is fine for now
+#     """
+#     # Ensures user does not try to arm until autopilot is ready
+#     while not vehicle.is_armable:
+#         print("Waiting for vehicle to initialize...")
+#         time.sleep(1)
+#     """
+    
+#     print("Arming motors")
+#     # Copter should arm in guided_nogps mode
+#     vehicle.mode = VehicleMode("GUIDED_NOGPS")
+#     time.sleep(2)
+#     print(vehicle.mode)
+#     vehicle.armed = True
+
+#     while not vehicle.armed:
+#         print("Waiting for vehicle to arm...")
+#         time.sleep(1)
+
+#     print("Vehicle is taking off!")
+#     # Take off to specified altitude
+#     vehicle.simple_takeoff(aTargetAltitude)
+    
+
+#     """
+#     Wait until vehicle has reached specified altitude before processing next command
+#     Any command directly after Vehicle.simple_takeoff will execute immediately 
+#     """
+    
+#     while True:
+#         print("Altitude: ", vehicle.location.global_relative_frame.alt)
+#         if vehicle.location.global_relative_frame.alt >= aTargetAltitude * 0.95:
+#             print("Reached  target altitude")
+#             break
+#         time.sleep(1)
     
     
 #kill switch implementation --------------------------------------------
