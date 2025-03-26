@@ -1,3 +1,22 @@
+"""
+    
+    
+    
+    
+    
+    
+    
+    DO NOT RUN THIS PROGRAM FOR NOW!!!
+
+    
+
+
+
+
+
+
+"""
+
 from dronekit import connect, VehicleMode
 from pymavlink import mavutil
 import time
@@ -24,7 +43,7 @@ import os
 
 # Connect to the drone via serial port
 print("Connecting to UAV CubeOrange via /dev/ttyAMA0...")
-vehicle = connect('/dev/ttyAMA0', baud=57600, wait_ready=True)
+#vehicle = connect('/dev/ttyAMA0', baud=57600, wait_ready=True)
 print("UAV Pi is successfully connected to the Cube Orange!\n")
 
 # Log file path
