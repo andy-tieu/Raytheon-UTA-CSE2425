@@ -9,6 +9,7 @@ PROGRAM TO RUN RAYTHEON COMPETITION CHALLENGE(S)
 from camera_detection import *
 from drone_comm import *
 from drone_movement import *
+from vehicle_logging import *
 
 """ END OF IMPORTS """
 
@@ -67,6 +68,9 @@ if __name__ == "__main__":
     
     # Change dropzone ID here to whichever is given at competition
     DROPZONE = 3
+
+    # Start logging
+    log_start() # ADAM LOGGING
 
     # We can use some test waypoints here
     waypoints = np.loadtxt("test.waypoints", delimiter = "\t", skiprows = 2)

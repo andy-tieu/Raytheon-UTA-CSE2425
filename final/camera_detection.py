@@ -16,6 +16,7 @@ import time
 # Other imports
 from drone_comm import *
 from drone_movement import *
+from vehicle_logging import *
 
 """ END OF IMPORTS """
 
@@ -89,12 +90,14 @@ class ArucoDetection:
                 # Draws on top of the actual frame (since we convert to BGR, it will allow the drawing to work since otherwise it will error out)
                 cv2.aruco.drawDetectedMarkers(frame_bgr, corners, ids)
 
+                log_aruco_discovery(ids) # ADAM LOGGING
                 print(f"ArUco Marker with ID: {ids} detected")
                 for i in range(len(ids)):
                     # Extract corner points
                     c = corners[i][0]
 
                     if ids[i] == self.DROPZONE:
+                        log_dropzone_discovery(ids[i]) # ADAM LOGGING
                         print("DropZone detected")
 
                         # We only care about the location of the drop zone, so all centering code is located within it
@@ -116,6 +119,8 @@ class ArucoDetection:
                             coordinates_str = f"{latitude},{longitude},{altitude}"
                             msg = "test"
                             self._client.send_msg(self._client, msg) # Change out msg to coordinates_str when needed
+                            log_comm_transmit(msg) # ADAM LOGGING
+                            log_dropzone_location(ids[i], coordinates_str) # ADAM LOGGING
                         else:
                             print("Moving...")
                             # TODO: 
