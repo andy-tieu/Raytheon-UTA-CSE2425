@@ -15,6 +15,7 @@ import time
 
 # Other imports
 from drone_comm import *
+from drone_movement import *
 
 """ END OF IMPORTS """
 
@@ -23,11 +24,18 @@ from drone_comm import *
 """ START OF FUNCTIONS """
 
 class ArucoDetection:
-    def __init__(self, DROPZONE, gui, client):
+    def __init__(self, vehicle, DROPZONE, gui, client):
+
+        # Vehicle object to get current latitude and longitude
+        self._vehicle = vehicle
+
         # ArUco Dictionary init
         # Using smallest dictionary since there are only markers from ID 1 to ID 5
         self._arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_50)
         self._parameters = cv2.aruco.DetectorParameters_create()
+
+        # ArUco info
+        self.DROPZONE = DROPZONE
 
         # Camera init
         self._picam2 = Picamera2()
@@ -35,9 +43,6 @@ class ArucoDetection:
         self._picam2.configure(self._config)
         self._picam2.start()
         self._gui = gui
-
-        # ArUco info
-        self.DROPZONE = DROPZONE
 
         # Socket client to send coordinates when needed
         self._client = client
@@ -84,11 +89,6 @@ class ArucoDetection:
                 # Draws on top of the actual frame (since we convert to BGR, it will allow the drawing to work since otherwise it will error out)
                 cv2.aruco.drawDetectedMarkers(frame_bgr, corners, ids)
 
-                # TODO: 
-                # TEST THE CENTERING AND HOW IT WOULD WORK IN THE AIR
-                # ADD FUNCTIONALITY TO ALLOW DRONE TO MOVE AND CENTER ITSELF BASED ON OFFSET VALUES
-                # W/ DRONE, SEND COORDINATES OF WHERE WE ARE WHEN DETECTING THE DROPZONE MARKER
-
                 print(f"ArUco Marker with ID: {ids} detected")
                 for i in range(len(ids)):
                     # Extract corner points
@@ -104,11 +104,24 @@ class ArucoDetection:
 
                         if (center_x - margin <= marker_center[0] <= center_x + margin) and (center_y - margin <= marker_center[1] <= center_y + margin):
                             print("Marker centered!")
-                            # Add code to send coordinates here
+
+                            # Get current location
+                            latitude = self._vehicle.location.global_frame.lat
+                            longitude = self._vehicle.location.global_frame.lon
+                            altitude = self._vehicle.location.global_frame.alt
+
+                            print(f"Location: Lat: {latitude}\t Lon: {longitude}\t Alt: {altitude}")
+
+                            # Prepare data to send
+                            coordinates_str = f"{latitude},{longitude},{altitude}"
                             msg = "test"
-                            self._client.send_msg(self._client, msg)
+                            self._client.send_msg(self._client, msg) # Change out msg to coordinates_str when needed
                         else:
                             print("Moving...")
+                            # TODO: 
+                            # ADD FUNCTIONALITY TO ALLOW DRONE TO MOVE AND CENTER ITSELF BASED ON OFFSET VALUES
+                            # TEST THE CENTERING AND HOW IT WOULD WORK IN THE AIR
+
                             # Add code to move drone closer to being centered
                             # Issue to address: drone may be too high and give inaccurate coordinates;
                             # need to factor in height adjustments as well (we can have drone lower to a certain altitude or
@@ -118,9 +131,9 @@ class ArucoDetection:
             else:
                 print("No markers detected")
 
-            # Displays the frames on the camera feed, so the user can see that a marker has been identified
+            # If gui is set to true, camera feed will show up in a new window
             if self.gui:
-                # Display the frame
+                # Displays the frame
                 cv2.imshow("ArUco Marker Detection", frame_bgr)
 
                 # Use 'q' to quit or ctrl + c in terminal
