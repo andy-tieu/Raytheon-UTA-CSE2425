@@ -56,9 +56,7 @@ if __name__ == "__main__":
     # Figure out how to get waypoints from Mission Planner here
 
     # Connect to UAV drone
-    print("Connecting to UAV CubeOrange via /dev/ttyAMA0...")
-    vehicle = connect('/dev/ttyAMA0', baud=57600, wait_ready=True)
-    print("UAV RPi successfully connected to the Cube Orange!\n")
+    vehicle = drone_connect('/dev/ttyAMA0')
 
     # Put UGV_IP address here to be used
     # UGV's IP on PortablWiFi: 192.168.1.21
