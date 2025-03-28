@@ -1,29 +1,14 @@
 """
-This is the beginning of the program using everything
-to run the autonomous flying, detection, and communication
-on the UAV drone.
+RAYTHEON CSE TEAM 2024-2025
+
+PROGRAM TO RUN RAYTHEON COMPETITION CHALLENGE(S)
 """
-
-"""
-TO-DO LIST HERE!!!:
-
-- IF THINGS ARE ADDED, DEFINE FUNCTIONS FOR THEM TO MAKE EASIER USE
-- ADD GOOD COMMENTS PLEASE; VERY IMPORTANT
-- ADD THE REST OF THE CAMERA DETECTION CODE
-- ADD CODE TO CONNECT TO THE UAV (CUBE ORANGE)
-- ADD KILLSWITCH CODE TO MAKE SURE LANDING IS SAFE
-- ADD CODE TO ARM/DISARM
-- ADD CODE TO SEND GPS COORDINATES OF THE UAV
-- ADD IMPORTS (AS NEEDED)
-- ADD FLYING CAPABILITIES (IF POSSIBLE RN)
-"""
-
-
 
 """ BEGINNING OF IMPORTS """
 
 from camera_detection import *
 from drone_comm import *
+from drone_movement import *
 
 """ END OF IMPORTS """
 
@@ -31,6 +16,32 @@ from drone_comm import *
 
 """ START OF FUNCTIONS """
 
+class SearchRelay:
+    def __init__(self, vehicle, waypoints, DROPZONE, client):
+        
+        self.vehicle = vehicle
+        self.waypoints = waypoints
+        self.DROPZONE = DROPZONE
+        self.client = client
+
+    def search(self):
+        waypoint_list = self.waypoints
+
+        # Create camera object
+        gui = False # Change this if you want video feed or not
+        aruco_detection = ArucoDetection(DROPZONE, gui, client)
+
+        for waypoint in waypoint_list:
+            target_location = LocationGlobalRelative(waypoint[0], waypoint[1], waypoint[2])
+            self.vehicle.simple_goto(target_location)
+
+            while self.vehicle.mode.name == "GUIDED":
+                print("Vehicle is in GUIDED mode!")
+
+                # TODO:
+                # ADD CODE HERE TO PERFORM MOVEMENT AS NEEDED
+                # POSSIBLY USE A SEPARATE PROGRAM CONTAINING NECESSARY DRONE MOVEMENT FUNCTIONS
+                # POSSIBLE ISSUE: CAMERA LOOPS INDEFINITELY AND DRONE CANNOT MOVE TO NEXT WAYPOINT
 
 
 """ END OF FUNCTIONS """
@@ -40,6 +51,14 @@ from drone_comm import *
 """ START OF MAIN """
 
 if __name__ == "__main__":
+
+    # TODO:
+    # Figure out how to get waypoints from Mission Planner here
+
+    # Connect to UAV drone
+    print("Connecting to UAV CubeOrange via /dev/ttyAMA0...")
+    vehicle = connect('/dev/ttyAMA0', baud=57600, wait_ready=True)
+    print("UAV RPi successfully connected to the Cube Orange!\n")
 
     # Put UGV_IP address here to be used
     # UGV's IP on PortablWiFi: 192.168.1.21
@@ -51,14 +70,14 @@ if __name__ == "__main__":
     # Change dropzone ID here to whichever is given at competition
     DROPZONE = 3
 
+    # We can use some test waypoints here
+    waypoints = np.loadtxt("test.waypoints", delimiter = "\t", skiprows = 2)
+
     # Create client object
     client = client_init(UGV_IP, UGV_PORT)
 
-    # Create camera object
-    gui = False # Change this if you want video feed or not
-    aruco_detection = ArucoDetection(DROPZONE, gui, client)
+    # Start the search pattern for drop zone
+    search = SearchRelay(vehicle, waypoints, DROPZONE, client)
 
-    # Start detection
-    aruco_detection.detect()
 
 """ END OF MAIN """
