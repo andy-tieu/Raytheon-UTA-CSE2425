@@ -30,6 +30,6 @@ def send_msg(client, msg):
     response = client.recv(1024).decode()
     print(f"Response from UGV: {response}")
 
-    return response # In case any info is needed
+    # return response # In case any info is needed
 
 """ END OF FUNCTIONS """
