@@ -19,7 +19,7 @@ import signal
 # Global variables
 filename = "uav_status.txt"     # Log file name
                                 # CHANGE FILE NAME FOR UAV or UVG LOGGING
-debug = True                    # Debug mode: For verifying when logging occurs
+debug = True                    # Debug mode: For verifying when logging occurs, turn off when not debugging
 
 """ END OF GLOBALS """
 

@@ -47,7 +47,7 @@ class SearchRelay:
 
 """ END OF FUNCTIONS """
 
-
+debug = True # Debug mode for this script
 
 """ START OF MAIN """
 

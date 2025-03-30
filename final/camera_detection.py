@@ -72,7 +72,7 @@ class ArucoDetection:
             corners, ids, rejected_img_points = cv2.aruco.detectMarkers(gray, self._arucoDict, parameters=self._parameters)    
 
             # Convert to BGR, otherwise the display will have issues
-            frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)            
+            frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
             # This extracts the height and width of the actual camera frame we currently have
             # Since the frame is always a square or rectangle, dividing by 2 will get the center of either axis
