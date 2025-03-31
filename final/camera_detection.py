@@ -121,16 +121,26 @@ class ArucoDetection:
                             self._client.send_msg(self._client, msg) # Change out msg to coordinates_str when needed
                             log_comm_transmit(msg) # ADAM LOGGING
                             log_dropzone_location(ids[i], coordinates_str) # ADAM LOGGING
-                        else:
-                            print("Moving...")
-                            # TODO: 
-                            # ADD FUNCTIONALITY TO ALLOW DRONE TO MOVE AND CENTER ITSELF BASED ON OFFSET VALUES
-                            # TEST THE CENTERING AND HOW IT WOULD WORK IN THE AIR
 
-                            # Add code to move drone closer to being centered
-                            # Issue to address: drone may be too high and give inaccurate coordinates;
-                            # need to factor in height adjustments as well (we can have drone lower to a certain altitude or
-                            # lower until no longer centered and recenter before continuing to lower until specified altitude)
+                            # After the marker is centered and coordinates are sent, the UAV is returned to launch point
+                            # This portion of code can also be replaced with landing the drone at a specific landing zone
+                            print("Returning to launch point...")
+                            self._vehicle.mode = VehicleMode("RTL")
+                            self._vehicle.flush()
+
+                            # NOTE: I think if the UAV detect the launchzone ArUco marker, it wiill try to center itself again, so maybe the program will need a 
+                            # flag to stop the UAV from centering/ignore Aruco markers once it is in RTL mode
+                        else:
+                            # Marker is not centered, adjust UAV position
+                            print("Moving...")
+                            forward_speed = -0.5 if dy > 0 else (0.5 if dy < 0 else 0)  # Move forward/backward
+                            right_speed = 0.5 if dx > 0 else (-0.5 if dx < 0 else 0)    # Move left/right
+                            down_speed = 0  # No vertical adjustment for now; can be added if needed
+
+                            # Send velocity commands to adjust UAV position
+                            send_body_velocity(self._vehicle, forward_speed, right_speed, down_speed, check_interval=0.1)
+
+                            print(f"Adjusting position: forward_speed={forward_speed}, right_speed={right_speed}, down_speed={down_speed}")
                     else:
                         print("Non-DropZone detected")
             else:

@@ -19,10 +19,17 @@ import sys
 import threading
 import camera_detection
 
-
 """ END OF IMPORTS """
 
+
+
+""" START OF GLOBALS """
+
 debug = True                    # Debug mode: For verifying when logging occurs, turn off when not debugging
+
+""" START OF GLOBALS """
+
+
 
 """ START OF FUNCTIONS """
 
@@ -73,7 +80,7 @@ def arm_and_takeoff(vehicle, target_alt):
 # note that this method uses body frame velocities to move the drone in a specific direction based on the forward, right, and down speeds
 # this makes the movement relative to the drone instead of relying on compass directions from the GPS
 
-def send_body_velocity(vehicle, forward_speed, right_speed, down_speed, camera_detection, check_interval=0.1):
+def send_body_velocity(vehicle, forward_speed, right_speed, down_speed, check_interval=0.1):
     """
     Continuously sends body-frame velocity commands (m/s) until 'check_marker_func' returns True.
     - forward_speed, right_speed, down_speed: velocity along the drone's body axes
@@ -101,45 +108,41 @@ def send_body_velocity(vehicle, forward_speed, right_speed, down_speed, camera_d
         0, 0                 # yaw, yaw_rate (ignored)
     )
 
+    vehicle.send_mavlink(msg)
+    vehicle.flush()
+
     if debug:
         print("Starting indefinite body-frame velocity movement...")
         print(f"Forward speed: {forward_speed} m/s, Right speed: {right_speed} m/s, Down speed: {down_speed} m/s\n")
-
     
     # Keep sending the command at ~10 Hz for the given duration
-    while True:
-        # Send velocity command
-        vehicle.send_mavlink(msg)
-        vehicle.flush()
+    # while True:
+    #     # Send velocity command
+    #     vehicle.send_mavlink(msg)
+    #     vehicle.flush()
 
-        # Check if marker is found
-        if check_marker_func():
-            if debug:
-                print("Marker detected! Stopping movement...")
-            break
+    #     # Check if marker is found
+    #     if check_marker_func():
+    #         if debug:
+    #             print("Marker detected! Stopping movement...")
+    #         break
 
-        time.sleep(check_interval)
+    #     time.sleep(check_interval)
 
-    # After the duration, send a zero-velocity command to stop
-    stop_msg = vehicle.message_factory.set_position_target_local_ned_encode(
-        0, 0, 0,
-        mavutil.mavlink.MAV_FRAME_BODY_NED,
-        0b0000111111000111,
-        0, 0, 0,
-        0, 0, 0,  # zero velocity
-        0, 0, 0,
-        0, 0
-    )
-    vehicle.send_mavlink(stop_msg)
-    vehicle.flush()
-    if debug:
-        print("Sent zero velocity command to stop the drone.")
-
-    # once marker is found
-    vehicle.mode = VehicleMode("LAND")
-    # Optionally, wait a moment to ensure the LAND command is received
-    time.sleep(2)
-    print("Drone should now be landing... Exiting the function.")
+    # # After the duration, send a zero-velocity command to stop
+    # stop_msg = vehicle.message_factory.set_position_target_local_ned_encode(
+    #     0, 0, 0,
+    #     mavutil.mavlink.MAV_FRAME_BODY_NED,
+    #     0b0000111111000111,
+    #     0, 0, 0,
+    #     0, 0, 0,  # zero velocity
+    #     0, 0, 0,
+    #     0, 0
+    # )
+    # vehicle.send_mavlink(stop_msg)
+    # vehicle.flush()
+    # if debug:
+    #     print("Sent zero velocity command to stop the drone.")
 
 
 #kill switch implementation --------------------------------------------

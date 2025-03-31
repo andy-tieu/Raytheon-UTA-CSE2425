@@ -32,12 +32,14 @@ class SearchRelay:
         gui = False # Change this if you want video feed or not
         aruco_detection = ArucoDetection(DROPZONE, gui, client)
 
-        for waypoint in waypoint_list:
-            target_location = LocationGlobalRelative(waypoint[0], waypoint[1], waypoint[2])
-            self.vehicle.simple_goto(target_location)
 
-            while self.vehicle.mode.name == "GUIDED":
-                print("Vehicle is in GUIDED mode!")
+        # This section of code is temporarily commented out, the UAV will execute waypoint missions (AUTO mode set in main)
+        # for waypoint in waypoint_list:
+        #     target_location = LocationGlobalRelative(waypoint[0], waypoint[1], waypoint[2])
+        #     self.vehicle.simple_goto(target_location)
+
+        #     while self.vehicle.mode.name == "GUIDED":
+        #         print("Vehicle is in GUIDED mode!")
 
                 # TODO:
                 # ADD CODE HERE TO PERFORM MOVEMENT AS NEEDED
@@ -74,6 +76,9 @@ if __name__ == "__main__":
 
     # We can use some test waypoints here
     waypoints = np.loadtxt("test.waypoints", delimiter = "\t", skiprows = 2)
+
+    # Set UAV to AUTO mode to execute waypoint mission (snake search pattern)
+    vehicle.mode = VehicleMode("AUTO")
 
     # Create client object
     client = client_init(UGV_IP, UGV_PORT)
