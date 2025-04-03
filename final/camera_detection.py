@@ -97,6 +97,15 @@ class ArucoDetection:
                     c = corners[i][0]
 
                     if ids[i] == self.DROPZONE:
+                        self._vehicle.mode = VehicleMode("GUIDED")
+                        self._vehicle.flush()
+
+                        while self._vehicle.mode.name != "GUIDED":
+                            print("Waiting for mode change...")
+                            time.sleep(1)
+
+                        print("Drone is now in GUIDED mode and hovering.")
+
                         log_dropzone_discovery(ids[i]) # ADAM LOGGING
                         print("DropZone detected")
 
@@ -127,6 +136,9 @@ class ArucoDetection:
                             print("Returning to launch point...")
                             self._vehicle.mode = VehicleMode("RTL")
                             self._vehicle.flush()
+
+                            # This should prevent drone from continuing program
+                            self.stopCam()
 
                             # NOTE: I think if the UAV detect the launchzone ArUco marker, it wiill try to center itself again, so maybe the program will need a 
                             # flag to stop the UAV from centering/ignore Aruco markers once it is in RTL mode
