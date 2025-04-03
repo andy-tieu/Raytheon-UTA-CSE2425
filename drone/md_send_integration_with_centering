@@ -141,6 +141,17 @@ def detect_marker(picam2, arucoDict, arucoParameters, dropzone):
                             # Issue to address: drone may be too high and give inaccurate coordinates;
                             # need to factor in height adjustments as well (we can have drone lower to a certain altitude or
                             # lower until no longer centered and recenter before continuing to lower until specified altitude)
+                            # added code (in progress)
+                            # Marker is not centered, adjust UAV position
+                            print("Moving...")
+                            forward_speed = -0.5 if dy > 0 else (0.5 if dy < 0 else 0)  # Move forward/backward
+                            right_speed = 0.5 if dx > 0 else (-0.5 if dx < 0 else 0)    # Move left/right
+                            down_speed = 0  # No vertical adjustment for now; can be added if needed
+
+                            # Send velocity commands to adjust UAV position
+                            send_ned_velocity(self._vehicle, forward_speed, right_speed, down_speed, check_interval=0.1)
+
+                            print(f"Adjusting position: forward_speed={forward_speed}, right_speed={right_speed}, down_speed={down_speed}")
                             move_to_correct_position(dx, dy)
                     else:
                         print("Non-DropZone detected")
