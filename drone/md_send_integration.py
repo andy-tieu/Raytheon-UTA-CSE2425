@@ -2,6 +2,7 @@ from dronekit import connect, VehicleMode, LocationGlobal
 import time, socket
 import cv2
 from picamera2 import Picamera2
+from vehicle_logging import *
 
 def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration):
     """ Move drone using velocity commands (m/s) for a specific duration """
@@ -95,7 +96,7 @@ def detect_marker(picam2, arucoDict, arucoParameters, dropzone):
                 # ADD FUNCTIONALITY TO ALLOW DRONE TO MOVE AND CENTER ITSELF BASED ON OFFSET VALUES
                 # FIX FOCUS (POSSIBLY CHANGE TO AUTOFOCUS MODE)
                 # W/ DRONE, SEND COORDINATES OF WHERE WE ARE WHEN DETECTING THE DROPZONE MARKER
-                
+
 
                 print(f"ArUco Marker with ID: {ids} detected")
                 for i in range(len(ids)):
