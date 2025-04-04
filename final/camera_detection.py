@@ -48,13 +48,15 @@ class ArucoDetection:
         # Socket client to send coordinates when needed
         self._client = client
 
+        self._centered = False
+
     def stopCam(self):
         # Turn off camera when needed
         self._picam2.stop()
 
     # Function to detect correct dropzone ArUco marker
     def detect(self):
-        while True:
+        while not self._centered:
             # Capture frame
             frame = self._picam2.capture_array()
             
@@ -98,7 +100,7 @@ class ArucoDetection:
 
                     if ids[i] == self.DROPZONE:
                         self._vehicle.mode = VehicleMode("GUIDED")
-                        self._vehicle.flush()
+                        # self._vehicle.flush() # not technically needed since switching modes goes through instantly
 
                         while self._vehicle.mode.name != "GUIDED":
                             print("Waiting for mode change...")
@@ -135,10 +137,17 @@ class ArucoDetection:
                             # This portion of code can also be replaced with landing the drone at a specific landing zone
                             print("Returning to launch point...")
                             self._vehicle.mode = VehicleMode("RTL")
-                            self._vehicle.flush()
+                            # self._vehicle.flush()
+
+                            while self._vehicle.mode.name != "RTL":
+                                print("Waiting for mode change...")
+                                time.sleep(1)
+
+                            print("Drone is now in RTL mode and returning.")
 
                             # This should prevent drone from continuing program
                             self.stopCam()
+                            self._centered = True
 
                             # NOTE: I think if the UAV detect the launchzone ArUco marker, it wiill try to center itself again, so maybe the program will need a 
                             # flag to stop the UAV from centering/ignore Aruco markers once it is in RTL mode
