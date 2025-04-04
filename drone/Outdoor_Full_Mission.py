@@ -1,11 +1,11 @@
 # This program integrates md_send_integration.py with camera centering functionality and logging
-# This program is designed to connect to the Cube Orange, arm the drone in GUIDED MODE, before taking off on the waypoints mission in AUTO MODE
+# This program is designed to connect to the Cube Orange, arm the drone in POSHOLD MODE, before taking off on the waypoints mission in AUTO MODE
 # Once the drone detects the correct ArUco Marker, it will switch to GUIDED MODE and center itself over the dropzone
 # It will then send the current GPS coordinates to the UGV and return to launch point
 
 # TODO:
-# Program needs logging, camera centering, and a switch to and from GUIDED mode
-
+# Program needs testing on camera centering
+# Would be good if this program were redone using OOP, this could replace full_test.py
 
 from dronekit import connect, VehicleMode, LocationGlobal
 import time, socket
@@ -24,8 +24,8 @@ def arm():
         time.sleep(1)
     
     print("Arming motors")
-    # Copter should arm in guided mode
-    vehicle.mode = VehicleMode("GUIDED")
+    # Copter should arm in poshold mode
+    vehicle.mode = VehicleMode("POSHOLD")
     vehicle.armed = True
 
     while not vehicle.armed:
@@ -35,6 +35,7 @@ def arm():
     # Now switch to AUTO mode to start the mission
     print("Vehicle is armed, ready for takeoff in AUTO mode")
     vehicle.mode = VehicleMode("AUTO")
+    vehicle_logging.log_start()  # Start logging mission
 
 def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration):
     """ Move drone using velocity commands (m/s) for a specific duration """
@@ -102,10 +103,10 @@ def detect_marker(picam2, arucoDict, arucoParameters, dropzone):
 
             # Takes in the image, dictionary, and parameters to the first, second, and fifth parameters
             # Returns detected corners, id of the marker, and any conrner points of rejected markers
-            corners, ids, rejected_img_points = cv2.aruco.detectMarkers(gray, arucoDict, parameters=arucoParameters)    
+            corners, ids, rejected_img_points = cv2.aruco.detectMarkers(gray, arucoDict, parameters=arucoParameters)
 
             # Convert to BGR, otherwise the display will have issues
-            frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)            
+            frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
             # This extracts the height and width of the actual camera frame we currently have
             # Since the frame is always a square or rectangle, dividing by 2 will get the center of either axis
@@ -131,20 +132,33 @@ def detect_marker(picam2, arucoDict, arucoParameters, dropzone):
                 
 
                 print(f"ArUco Marker with ID: {ids} detected")
+                # Log the discovery of the ArUco marker
+                vehicle_logging.log_aruco_discovery(ids)
                 for i in range(len(ids)):
                     # Extract corner points
                     c = corners[i][0]
 
                     if ids[i] == dropzone:
+
                         print("DropZone detected")
+                        log_dropzone_discovery(ids[i]) # ADAM LOGGING
+                        print("Entering GUIDED mode")
+                        vehicle.flush()
+
+
+                    while vehicle.mode.name != "GUIDED":
+                            print("Waiting for mode change...")
+                            time.sleep(1)
+                    print("Drone is now in GUIDED mode and hovering.")
 
                         # We only care about the location of the drop zone, so all centering code is located within it
                         marker_center = (int(c[:, 0].mean()), int(c[:, 1].mean()))
                         cv2.circle(frame_bgr, marker_center, 5, (0, 0, 255), -1)
-                        dx, dy = marker_center[0] - center_x, marker_center[1] - center_y                        
+                        dx, dy = marker_center[0] - center_x, marker_center[1] - center_y
 
                        # if (center_x - margin <= marker_center[0] <= center_x + margin) and (center_y - margin <= marker_center[1] <= center_y + margin):
                         if ids[i] == dropzone:
+                            
                             print("Marker centered!")
                             # Add code to send coordinates here
 
@@ -158,6 +172,8 @@ def detect_marker(picam2, arucoDict, arucoParameters, dropzone):
                             # Prepare data to send
                             coordinates_str = f"{latitude},{longitude},{altitude}"
 
+                            # log coordinates
+                            vehicle_logging.log_dropzone_location(ids[i, coordinates_str])
                             # Send the coordinates to the UGV
                             try:
                                 client.send(coordinates_str.encode())
@@ -167,8 +183,10 @@ def detect_marker(picam2, arucoDict, arucoParameters, dropzone):
                             except Exception as e:
                                 print(f"Error sending coordinates: {e}")
                             finally:
+                                vehicle_loggin.log_comm_transmit("Coordinates sent successfully to UGV")
                                 client.close()
                         else:
+                            vehicle.mode = VehicleMode("GUIDED")
                             print("Moving...")
                             # Add code to move drone closer to being centered
                             # Issue to address: drone may be too high and give inaccurate coordinates;
@@ -182,7 +200,7 @@ def detect_marker(picam2, arucoDict, arucoParameters, dropzone):
                             down_speed = 0  # No vertical adjustment for now; can be added if needed
 
                             # Send velocity commands to adjust UAV position
-                            send_ned_velocity(self._vehicle, forward_speed, right_speed, down_speed, check_interval=0.1)
+                            send_ned_velocity(vehicle, forward_speed, right_speed, down_speed, check_interval=0.1)
 
                             print(f"Adjusting position: forward_speed={forward_speed}, right_speed={right_speed}, down_speed={down_speed}")
                             move_to_correct_position(dx, dy)
@@ -203,17 +221,15 @@ def detect_marker(picam2, arucoDict, arucoParameters, dropzone):
 
     finally:
         # Release the capture and close any OpenCV windows
+        # Return to launch
+        print("Returning to launch point...")
+        vehicle.mode = VehicleMode("RTL")
+        vehicle.flush()
         cv2.destroyAllWindows()
         picam2.stop()
+        
 
-if __name__ == "__main__":
-
-    #COMMENTED OUT CODE IS FOR MISSION PLANNER SIMULATION TESTING (ASK SIMON)
-"""
-connection_string = 'tcp:127.0.0.1:57600'  
-print('Connecting to vehicle on: %s' % connection_string)
-
-vehicle = connect(connection_string, wait_ready = True)
+t(connection_string, wait_ready = True)
 """
 
     # Connect to the UAV
