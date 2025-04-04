@@ -2,7 +2,7 @@ from dronekit import connect, VehicleMode, LocationGlobal
 import time, socket
 import cv2
 from picamera2 import Picamera2
-from vehicle_logging import *
+# from vehicle_logging import *
 
 def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration):
     """ Move drone using velocity commands (m/s) for a specific duration """

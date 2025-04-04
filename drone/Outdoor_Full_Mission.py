@@ -1,7 +1,40 @@
+# This program integrates md_send_integration.py with camera centering functionality and logging
+# This program is designed to connect to the Cube Orange, arm the drone in GUIDED MODE, before taking off on the waypoints mission in AUTO MODE
+# Once the drone detects the correct ArUco Marker, it will switch to GUIDED MODE and center itself over the dropzone
+# It will then send the current GPS coordinates to the UGV and return to launch point
+
+# TODO:
+# Program needs logging, camera centering, and a switch to and from GUIDED mode
+
+
 from dronekit import connect, VehicleMode, LocationGlobal
 import time, socket
 import cv2
 from picamera2 import Picamera2
+from vehicle_logging import *
+
+"""
+Arms vehicle and takes off to specified altitude
+"""
+def arm():
+    print("Basic pre-arm checks")
+    # Ensures user does not try to arm until autopilot is ready
+    while not vehicle.is_armable:
+        print("Waiting for vehicle to initialize...")
+        time.sleep(1)
+    
+    print("Arming motors")
+    # Copter should arm in guided mode
+    vehicle.mode = VehicleMode("GUIDED")
+    vehicle.armed = True
+
+    while not vehicle.armed:
+        print("Waiting for vehicle to arm...")
+        time.sleep(1)
+
+    # Now switch to AUTO mode to start the mission
+    print("Vehicle is armed, ready for takeoff in AUTO mode")
+    vehicle.mode = VehicleMode("AUTO")
 
 def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration):
     """ Move drone using velocity commands (m/s) for a specific duration """
@@ -174,6 +207,15 @@ def detect_marker(picam2, arucoDict, arucoParameters, dropzone):
         picam2.stop()
 
 if __name__ == "__main__":
+
+    #COMMENTED OUT CODE IS FOR MISSION PLANNER SIMULATION TESTING (ASK SIMON)
+"""
+connection_string = 'tcp:127.0.0.1:57600'  
+print('Connecting to vehicle on: %s' % connection_string)
+
+vehicle = connect(connection_string, wait_ready = True)
+"""
+
     # Connect to the UAV
     print("Connecting to UAV CubeOrange via /ddev/ttyAMA0...")
     vehicle = connect('/dev/ttyAMA0', baud=57600, wait_ready=True)
@@ -188,5 +230,6 @@ if __name__ == "__main__":
 
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((ugv_ip, ugv_port))
-    
+    arm_and_takeoff(0.05)
     camera_init()
+
