@@ -189,12 +189,24 @@ class ArucoDetection:
 
 if __name__ == "__main__":
 
+    vehicle = drone_connect('/dev/ttyAMA0')
+
+    # Put UGV_IP address here to be used
+    # UGV's IP on PortablWiFi: 192.168.1.21
+    # UGV's IP on Hottest Spot: 192.168.1.25
+    # UGV's IP on Makerspace: 192.168.1.56
+    UGV_IP = '192.168.1.56' # Replace with the UGV's IP address
+    UGV_PORT = 12345 # Constant port used for connection; ensure UGV is using it
+
     # Change dropzone ID here to whichever is given at competition
     DROPZONE = 3
 
+    # Create client object
+    client = client_init(UGV_IP, UGV_PORT)
+
     # Create camera object
     gui = False # Change this if you want video feed or not
-    aruco_detection = ArucoDetection(DROPZONE, gui)
+    aruco_detection = ArucoDetection(vehicle, DROPZONE, gui, client)
 
     # Start detection
     aruco_detection.detect()
