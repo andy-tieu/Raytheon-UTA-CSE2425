@@ -151,6 +151,11 @@ def emergency_land(vehicle, signal, frame):
     print("\n Kill switch activated! Landing immediately...")
     vehicle.mode = VehicleMode("LAND")
     vehicle.flush()  # Ensure MAVLink command is sent
+
+    while vehicle.mode.name != "LAND":
+        print("Waiting for mode change...")
+        time.sleep(1)
+    
     time.sleep(1)
     vehicle.close()
     os._exit(0)
@@ -167,6 +172,11 @@ def listen_for_kill(vehicle):
             vehicle.mode = VehicleMode("LAND")
             vehicle.flush()  # Ensure MAVLink command is sent
             print("Stopping script...")
+
+            while vehicle.mode.name != "LAND":
+                print("Waiting for mode change...")
+                time.sleep(1)
+            
             time.sleep(2)  # Give some time for LAND mode to engage
             vehicle.close()  # Close connection safely
             
