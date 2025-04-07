@@ -99,14 +99,14 @@ class ArucoDetection:
                     c = corners[i][0]
 
                     if ids[i] == self.DROPZONE:
-                        self._vehicle.mode = VehicleMode("GUIDED")
+                        self._vehicle.mode = VehicleMode("POSHOLD")
                         # self._vehicle.flush() # not technically needed since switching modes goes through instantly
 
-                        while self._vehicle.mode.name != "GUIDED":
+                        while self._vehicle.mode.name != "POSHOLD":
                             print("Waiting for mode change...")
                             time.sleep(1)
 
-                        print("Drone is now in GUIDED mode and hovering.")
+                        print("Drone is now in POSHOLD mode and hovering.")
 
                         log_dropzone_discovery(ids[i]) # ADAM LOGGING
                         print("DropZone detected")
@@ -207,6 +207,11 @@ if __name__ == "__main__":
     # Create camera object
     gui = False # Change this if you want video feed or not
     aruco_detection = ArucoDetection(vehicle, DROPZONE, gui, client)
+
+    signal.signal(signal.SIGINT, emergency_land)
+
+    kill_thread = threading.Thread(target=listen_for_kill, daemon=True)
+    kill_thread.start()
 
     # Start detection
     aruco_detection.detect()
