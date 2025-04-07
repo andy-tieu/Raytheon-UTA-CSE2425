@@ -146,7 +146,7 @@ def send_body_velocity(vehicle, forward_speed, right_speed, down_speed, check_in
 
 
 #kill switch implementation --------------------------------------------
-def emergency_land(signal, frame):
+def emergency_land(vehicle, signal, frame):
     """ Emergency landing function triggered by CTRL+C """
     print("\n Kill switch activated! Landing immediately...")
     vehicle.mode = VehicleMode("LAND")
@@ -158,7 +158,7 @@ def emergency_land(signal, frame):
 # Attach the kill switch to SIGINT (CTRL+C)
 signal.signal(signal.SIGINT, emergency_land)
 
-def listen_for_kill():
+def listen_for_kill(vehicle):
     """ Monitors for user input to trigger an emergency stop. """
     while True:
         user_input = input()

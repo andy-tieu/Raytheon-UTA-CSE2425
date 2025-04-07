@@ -208,9 +208,9 @@ if __name__ == "__main__":
     gui = False # Change this if you want video feed or not
     aruco_detection = ArucoDetection(vehicle, DROPZONE, gui, client)
 
-    signal.signal(signal.SIGINT, emergency_land)
+    signal.signal(signal.SIGINT, emergency_land(vehicle))
 
-    kill_thread = threading.Thread(target=listen_for_kill, daemon=True)
+    kill_thread = threading.Thread(target=listen_for_kill(vehicle), daemon=True)
     kill_thread.start()
 
     # Start detection
