@@ -156,6 +156,7 @@ def emergency_land(vehicle, signal, frame):
         print("Waiting for mode change...")
         time.sleep(1)
     
+    print("Mode successfully switched to LAND!")
     time.sleep(1)
     vehicle.close()
     os._exit(0)
@@ -176,7 +177,8 @@ def listen_for_kill(vehicle):
             while vehicle.mode.name != "LAND":
                 print("Waiting for mode change...")
                 time.sleep(1)
-            
+
+            print("Mode successfully switched to LAND!")
             time.sleep(2)  # Give some time for LAND mode to engage
             vehicle.close()  # Close connection safely
             
@@ -189,6 +191,12 @@ kill_thread.start()
 
 def land(self):
     self.vehicle.mode = VehicleMode("LAND")
+
+    while self.vehicle.mode.name != "LAND":
+        print("Waiting for mode change...")
+        time.sleep(1)
+
+    print("Mode successfully switched to LAND!")
 
 def argParser():
     """
