@@ -9,9 +9,11 @@ PROGRAM TO RUN CAMERA AND ARUCO MARKER DETECTION
 # Dependencies; need to be installed
 import cv2 # opencv
 from picamera2 import Picamera2 # for RPi camera module use
+import numpy as np
 
 # Usual Python imports
 import time
+import math
 
 # Other imports
 from drone_comm import *
@@ -45,10 +47,37 @@ class ArucoDetection:
         self._picam2.start()
         self._gui = gui
 
+        # Camera intrinsic parameters (for Raspberry Pi Camera Module 3 Wide)
+        # These should be obtained via camera calibration (fx, fy, cx, cy).
+        self.fx = 1420.0  # Example focal length in pixels (adjust based on calibration)
+        self.fy = 1420.0
+        self.cx = 640 / 2  # Assuming 1920x1080 resolution
+        self.cy = 480 / 2
+
+        # Earth radius in meters
+        self.R_EARTH = 6378137  
+
         # Socket client to send coordinates when needed
         self._client = client
 
         self._centered = False
+
+    def pixel_to_world_coordinates(self, u, v, h):
+        """Convert pixel coordinates to real-world displacement (X, Y)."""
+        X = (u - self.cx) * h / self.fx
+        Y = (v - self.cy) * h / self.fy
+
+        return X, Y
+
+    def world_to_gps(self, drone_lat, drone_lon, X, Y):
+        """Convert world coordinates (X, Y) to GPS coordinates."""
+        delta_lat = (Y / self.R_EARTH) * (180 / math.pi)
+        delta_lon = (X / (self.R_EARTH * math.cos(math.radians(drone_lat)))) * (180 / math.pi)
+        
+        marker_lat = drone_lat + delta_lat
+        marker_lon = drone_lon + delta_lon
+
+        return marker_lat, marker_lon
 
     def stopCam(self):
         # Turn off camera when needed
@@ -99,14 +128,25 @@ class ArucoDetection:
                     c = corners[i][0]
 
                     if ids[i] == self.DROPZONE:
-                        self._vehicle.mode = VehicleMode("POSHOLD")
+                        corner_points = corners[0][0]
+                        u, v = np.mean(corner_points, axis=0)
+
+                        X, Y = self.pixel_to_world_coordinates(u, v, self._vehicle.location.global_frame.alt)
+                        marker_lat, marker_lon = self.world_to_gps(self._vehicle.location.global_frame.lat, self._vehicle.location.global_frame.lon, X, Y)
+
+                        est_coords = f"{marker_lat}, {marker_lon}"
+
+                        print(f"Estimated Marker GPS Location: {marker_lat}, {marker_lon}")
+                        log_dropzone_location(ids[i], est_coords)
+
+                        self._vehicle.mode = VehicleMode("GUIDED")
                         # self._vehicle.flush() # not technically needed since switching modes goes through instantly
 
-                        while self._vehicle.mode.name != "POSHOLD":
+                        while self._vehicle.mode.name != "GUIDED":
                             print("Waiting for mode change...")
                             time.sleep(1)
 
-                        print("Drone is now in POSHOLD mode and hovering.")
+                        print("Drone is now in GUIDED mode and hovering.")
 
                         log_dropzone_discovery(ids[i]) # ADAM LOGGING
                         print("DropZone detected")
@@ -128,22 +168,21 @@ class ArucoDetection:
 
                             # Prepare data to send
                             coordinates_str = f"{latitude},{longitude},{altitude}"
-                            msg = "test"
-                            self._client.send_msg(self._client, msg) # Change out msg to coordinates_str when needed
-                            log_comm_transmit(msg) # ADAM LOGGING
+                            #self._client.send_msg(self._client, coordinates_str) # Change out msg to coordinates_str when needed
+                            log_comm_transmit(coordinates_str) # ADAM LOGGING
                             log_dropzone_location(ids[i], coordinates_str) # ADAM LOGGING
 
                             # After the marker is centered and coordinates are sent, the UAV is returned to launch point
                             # This portion of code can also be replaced with landing the drone at a specific landing zone
                             print("Returning to launch point...")
-                            self._vehicle.mode = VehicleMode("RTL")
+                            self._vehicle.mode = VehicleMode("LAND")
                             # self._vehicle.flush()
 
-                            while self._vehicle.mode.name != "RTL":
+                            while self._vehicle.mode.name != "LAND":
                                 print("Waiting for mode change...")
                                 time.sleep(1)
 
-                            print("Drone is now in RTL mode and returning.")
+                            print("Drone is now in LAND mode and landing.")
 
                             # This should prevent drone from continuing program
                             self.stopCam()
@@ -168,7 +207,7 @@ class ArucoDetection:
                 print("No markers detected")
 
             # If gui is set to true, camera feed will show up in a new window
-            if self.gui:
+            if self._gui:
                 # Displays the frame
                 cv2.imshow("ArUco Marker Detection", frame_bgr)
 
@@ -199,19 +238,19 @@ if __name__ == "__main__":
     UGV_PORT = 12345 # Constant port used for connection; ensure UGV is using it
 
     # Change dropzone ID here to whichever is given at competition
-    DROPZONE = 3
+    DROPZONE = 4
 
     # Create client object
-    client = client_init(UGV_IP, UGV_PORT)
+    #client = client_init(UGV_IP, UGV_PORT)
 
     # Create camera object
     gui = False # Change this if you want video feed or not
-    aruco_detection = ArucoDetection(vehicle, DROPZONE, gui, client)
+    aruco_detection = ArucoDetection(vehicle, DROPZONE, gui, None)
 
-    signal.signal(signal.SIGINT, emergency_land(vehicle))
+    """signal.signal(signal.SIGINT, emergency_land(vehicle))
 
     kill_thread = threading.Thread(target=listen_for_kill(vehicle), daemon=True)
-    kill_thread.start()
+    kill_thread.start()"""
 
     # Start detection
     aruco_detection.detect()
