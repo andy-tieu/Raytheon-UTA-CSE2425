@@ -33,6 +33,7 @@ class SearchRelay:
         aruco_detection = ArucoDetection(DROPZONE, gui, client)
 
 
+
         # This section of code is temporarily commented out, the UAV will execute waypoint missions (AUTO mode set in main)
         # for waypoint in waypoint_list:
         #     target_location = LocationGlobalRelative(waypoint[0], waypoint[1], waypoint[2])
