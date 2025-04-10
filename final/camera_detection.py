@@ -52,7 +52,7 @@ class ArucoDetection:
         self._timeout = 0
         
         # Set to track logged ArUco IDs
-        self._logged_ids = set()
+        self._logged_ids = []
         self._dropzoneflag = False
 
     def stopCam(self):
@@ -87,7 +87,7 @@ class ArucoDetection:
             center_x, center_y = width // 2, height // 2
 
             # Define error margin square (e.g., 25x25 pixels)
-            # Margin will need testing since it will greatly depend on how high up we are
+            # Margin will need adjusting depending on drone's altitude
             margin = 75
 
             # Draws the rectangle onto our current frame; corners are calculated
@@ -96,9 +96,6 @@ class ArucoDetection:
             if ids is not None:
                 # Draws on top of the actual frame (since we convert to BGR, it will allow the drawing to work since otherwise it will error out)
                 cv2.aruco.drawDetectedMarkers(frame_bgr, corners, ids)
-
-                log_aruco_discovery(ids) # ADAM LOGGING
-                print(f"ArUco Marker with ID: {ids} detected")
                 
                 for i in range(len(ids)):
                     # Extract corner points
@@ -113,8 +110,9 @@ class ArucoDetection:
                             time.sleep(1)
 
                         print("Drone is now in GUIDED mode and hovering.")
-                        log_dropzone_discovery(ids[i]) # ADAM LOGGING
-                        print("DropZone detected")
+                        if ids[i] not in self._logged_ids:
+                            log_dropzone_discovery(ids[i]) # ADAM LOGGING
+                            print("DropZone detected")
 
                         # We only care about the location of the drop zone, so all centering code is located within it
                         marker_center = (int(c[:, 0].mean()), int(c[:, 1].mean()))
@@ -133,7 +131,7 @@ class ArucoDetection:
 
                             # Prepare data to send
                             coordinates_str = f"{latitude},{longitude},{altitude}"
-                            send_msg(self._client, coordinates_str) # Change out msg to coordinates_str when needed
+                            send_msg(self._client, coordinates_str)
                             log_comm_transmit(coordinates_str) # ADAM LOGGING
                             log_dropzone_location(ids[i], coordinates_str) # ADAM LOGGING
 
@@ -153,8 +151,14 @@ class ArucoDetection:
                             self.stopCam()
                             self._centered = True
 
-                            # NOTE: I think if the UAV detect the launchzone ArUco marker, it wiill try to center itself again, so maybe the program will need a 
-                            # flag to stop the UAV from centering/ignore Aruco markers once it is in RTL mode
+                            # Wait until the drone disarms after RTL (meaning it has landed)
+                            while vehicle.armed:
+                                print("Waiting for landing...")
+                                time.sleep(1)
+
+                            print("Drone has landed and disarmed.")
+                            log_end()
+
                         else:
                             # Marker is not centered, adjust UAV position
                             print("Moving...")
@@ -162,7 +166,7 @@ class ArucoDetection:
                             right_speed = 0.1 if dx > 0 else (-0.1 if dx < 0 else 0)    # Move left/right
                             down_speed = 0  # No vertical adjustment for now; can be added if needed
 
-                            # Send velocity commands to adjust UAV position
+                            # Send velocity commands to adjust UAV position; movement is based on drone's direction
                             send_body_velocity(self._vehicle, forward_speed, right_speed, down_speed, check_interval=0.01)
                             print(f"Adjusting position: forward_speed={forward_speed}, right_speed={right_speed}, down_speed={down_speed}")
                             
@@ -209,9 +213,15 @@ class ArucoDetection:
                                 log_end()
 
                     else:
+                        if ids[i] not in self._logged_ids:
+                            self._logged_ids.append(ids[i])
+                            log_aruco_discovery(ids[i]) # ADAM LOGGING
+                            print(f"ArUco Marker with ID: {ids[i]} detected")
+
                         print("Non-DropZone detected")
-            else:
-                print("No markers detected")
+            #else:
+                # This can be commented out since it will flood terminal; used for testing
+                #print("No markers detected")
 
             # If gui is set to true, camera feed will show up in a new window
             if self._gui:
