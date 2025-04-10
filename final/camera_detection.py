@@ -270,6 +270,7 @@ if __name__ == "__main__":
     #kill_thread.start()
 
     # Start detection
+    log_start()
     aruco_detection.detect()
 
 """ END OF MAIN """
