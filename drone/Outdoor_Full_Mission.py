@@ -11,10 +11,11 @@ from dronekit import connect, VehicleMode, LocationGlobal
 import time, socket
 import cv2
 from picamera2 import Picamera2
-from vehicle_logging import *
+import vehicle_logging
+import threading
 
 """
-Arms vehicle and takes off to specified altitude
+Arms vehicle
 """
 def arm():
     print("Basic pre-arm checks")
@@ -33,11 +34,40 @@ def arm():
         time.sleep(1)
 
     # Now switch to AUTO mode to start the mission
-    print("Vehicle is armed, ready for takeoff in AUTO mode")
     vehicle.mode = VehicleMode("AUTO")
+    while not vehicle.mode.name == "AUTO":
+        print(f"Waiting for mode change... Current mode: {vehicle.mode.name}")
+        time.sleep(1)
+        
+    print("Vehicle is armed, ready for takeoff in AUTO mode")
     vehicle_logging.log_start()  # Start logging mission
 
-def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration):
+#kill switch implementation --------------------------------------------
+def emergency_land(signal, frame):
+    """ Emergency landing function triggered by CTRL+C """
+    print("\n Kill switch activated! Landing immediately...")
+    vehicle.mode = VehicleMode("LAND")
+    vehicle.flush()  # Ensure MAVLink command is sent
+    time.sleep(1)
+    vehicle.close()
+    os._exit(0)
+
+def listen_for_kill():
+    """ Monitors for user input to trigger an emergency stop. """
+    while True:
+        user_input = input()
+        if user_input.lower() == "k":
+            print("\n Kill switch activated! Landing immediately...")
+            vehicle.mode = VehicleMode("LAND")
+            vehicle.flush()  # Ensure MAVLink command is sent
+            print("Stopping script...")
+            time.sleep(2)  # Give some time for LAND mode to engage
+            vehicle.close()  # Close connection safely
+            
+            print("Done")
+            os._exit(0)  # Forcefully exit the script
+
+def send_ned_velocity(vehicle, forward_speed, right_speed, down_speed, check_interval = 0.1):
     """ Move drone using velocity commands (m/s) for a specific duration """
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
         0, 0, 0,  # Target system, target component, coordinate frame
@@ -62,10 +92,10 @@ def move_to_correct_position(dx, dy):
     print(f"Sending velocity command: vx={velocity_x}, vy={velocity_y}")
 
     # Move the drone
-    send_ned_velocity(velocity_x, velocity_y, 0, 2)
+    send_ned_velocity(vehicle, velocity_x, velocity_y, 0, 2)
 
     # Stop movement after duration
-    send_ned_velocity(0, 0, 0, 1)  # Stop movement
+    send_ned_velocity(vehicle, 0, 0, 0, 1)  # Stop movement
 
 # This program detects ArUco markers using a Raspberry Pi camera and OpenCV
 # It distinguishes a specific marker separate from others as the dropzone
@@ -173,7 +203,7 @@ def detect_marker(picam2, arucoDict, arucoParameters, dropzone):
                             coordinates_str = f"{latitude},{longitude},{altitude}"
 
                             # log coordinates
-                            vehicle_logging.log_dropzone_location(ids[i, coordinates_str])
+                            vehicle_logging.log_dropzone_location(ids[i], coordinates_str)
                             # Send the coordinates to the UGV
                             try:
                                 client.send(coordinates_str.encode())
@@ -183,7 +213,7 @@ def detect_marker(picam2, arucoDict, arucoParameters, dropzone):
                             except Exception as e:
                                 print(f"Error sending coordinates: {e}")
                             finally:
-                                vehicle_loggin.log_comm_transmit("Coordinates sent successfully to UGV")
+                                vehicle_logging.log_comm_transmit("Coordinates sent successfully to UGV")
                                 client.close()
                         else:
                             vehicle.mode = VehicleMode("GUIDED")
@@ -229,9 +259,13 @@ def detect_marker(picam2, arucoDict, arucoParameters, dropzone):
         picam2.stop()
         
 
-t(connection_string, wait_ready = True)
 """
+connection_string = 'tcp:127.0.0.1:57600'  
+print('Connecting to vehicle on: %s' % connection_string)
 
+vehicle = connect(connection_string, wait_ready = True)
+"""
+if __name__ == "__main__":
     # Connect to the UAV
     print("Connecting to UAV CubeOrange via /ddev/ttyAMA0...")
     vehicle = connect('/dev/ttyAMA0', baud=57600, wait_ready=True)
@@ -246,6 +280,9 @@ t(connection_string, wait_ready = True)
 
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((ugv_ip, ugv_port))
-    arm_and_takeoff(0.05)
+    arm()
+    # Start the listener in a separate thread
+    kill_thread = threading.Thread(target=listen_for_kill, daemon=True)
+    kill_thread.start()
     camera_init()
 
