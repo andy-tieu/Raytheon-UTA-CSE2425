@@ -19,7 +19,7 @@ import os
 import argparse
 import sys
 import threading
-import camera_detection
+import final.challenge_2 as challenge_2
 
 """ END OF IMPORTS """
 
