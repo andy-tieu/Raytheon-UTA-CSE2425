@@ -225,9 +225,9 @@ def listen_for_kill():
 def argParser():
             os._exit(0)  # Forcefully exit the script
 
-# Start the listener in a separate thread
-kill_thread = threading.Thread(target=listen_for_kill, daemon=True)
-kill_thread.start()
+# # Start the listener in a separate thread
+# kill_thread = threading.Thread(target=listen_for_kill, daemon=True)
+# kill_thread.start()
 
 def land(self):
     self.vehicle.mode = VehicleMode("LAND")
