@@ -1,0 +1,22 @@
+10:03:43:	Start Time
+10:04:54:	ArUco ID [[2]] discovered
+10:04:55:	Drop Zone ArUco ID [2] discovered
+10:04:56:	ArUco ID [[2]] discovered
+10:04:56:	Drop Zone ArUco ID [2] discovered
+10:04:57:	ArUco ID [[2]] discovered
+10:04:57:	Drop Zone ArUco ID [2] discovered
+10:04:59:	ArUco ID [[2]] discovered
+10:04:59:	Drop Zone ArUco ID [2] discovered
+10:05:00:	ArUco ID [[2]] discovered
+10:05:00:	Drop Zone ArUco ID [2] discovered
+10:05:01:	ArUco ID [[2]] discovered
+10:05:01:	Drop Zone ArUco ID [2] discovered
+10:05:02:	ArUco ID [[2]] discovered
+10:05:02:	Drop Zone ArUco ID [2] discovered
+10:05:03:	ArUco ID [[2]] discovered
+10:05:03:	Drop Zone ArUco ID [2] discovered
+10:05:04:	ArUco ID [[2]] discovered
+10:05:04:	Drop Zone ArUco ID [2] discovered
+10:05:04:	Message Transmitted: 32.7295081,-97.126472,193.49
+10:05:04:	Drop Zone ArUco ID [2] is at 32.7295081,-97.126472,193.49
+10:05:44:	End Time
