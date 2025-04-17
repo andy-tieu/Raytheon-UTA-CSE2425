@@ -39,6 +39,8 @@ def log_start():
     
     if debug:
         print("Logging started.")
+        
+    f.close()
 
 def log_aruco_discovery(id):
     # Append the discovery time of any ArUco markers to log file
@@ -47,6 +49,8 @@ def log_aruco_discovery(id):
 
     if debug:
         print(f"ArUco ID {id} discovered.")
+        
+    f.close()
 
 def log_dropzone_discovery(id):
     # Append the discovery time of the drop zone ArUco marker to the log file
@@ -56,6 +60,8 @@ def log_dropzone_discovery(id):
     
     if debug:
         print(f"Drop Zone ArUco ID {id} discovered.")
+        
+    f.close()
 
 def log_dropzone_location(id, coordinates):
     # Append the location of the ArUco marker to the log file
@@ -65,6 +71,8 @@ def log_dropzone_location(id, coordinates):
     
     if debug:
         print(f"Drop Zone ArUco ID {id} is at {coordinates}.")
+        
+    f.close()
 
 def log_comm_transmit(msg):
     # Append the transmission of a message to UGV to the log file
@@ -74,6 +82,8 @@ def log_comm_transmit(msg):
     
     if debug:
         print(f"Message Transmitted: {msg}")
+        
+    f.close()
 
 def log_comm_receive(msg):
     # Append the reception of a message from UAV to the log file
@@ -83,6 +93,8 @@ def log_comm_receive(msg):
     
     if debug:
         print(f"Message Received: {msg}")
+        
+    f.close()
 
 def log_delivery(coordinates):
     # Append the delivery time of the payload to the log file
@@ -92,6 +104,8 @@ def log_delivery(coordinates):
     
     if debug:
         print(f"Payload Delivered at {coordinates}.")
+        
+    f.close()
 
 def log_end():
     # Append the end time of the vehicle to the log file
@@ -101,6 +115,8 @@ def log_end():
 
     if debug:
         print("Logging ended.")
+        
+    f.close()
 
 """ END OF FUNCTIONS """
 

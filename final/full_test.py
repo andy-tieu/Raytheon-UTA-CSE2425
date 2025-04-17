@@ -33,6 +33,7 @@ class SearchRelay:
         aruco_detection = ArucoDetection(DROPZONE, gui, client)
 
 
+
         # This section of code is temporarily commented out, the UAV will execute waypoint missions (AUTO mode set in main)
         # for waypoint in waypoint_list:
         #     target_location = LocationGlobalRelative(waypoint[0], waypoint[1], waypoint[2])
@@ -45,6 +46,8 @@ class SearchRelay:
                 # ADD CODE HERE TO PERFORM MOVEMENT AS NEEDED
                 # POSSIBLY USE A SEPARATE PROGRAM CONTAINING NECESSARY DRONE MOVEMENT FUNCTIONS
                 # POSSIBLE ISSUE: CAMERA LOOPS INDEFINITELY AND DRONE CANNOT MOVE TO NEXT WAYPOINT
+                
+                
 
 
 """ END OF FUNCTIONS """
@@ -65,6 +68,7 @@ if __name__ == "__main__":
     # UGV's IP on PortablWiFi: 192.168.1.21
     # UGV's IP on Hottest Spot: 192.168.1.25
     # UGV's IP on Makerspace: 192.168.1.56
+    
     UGV_IP = '192.168.1.56' # Replace with the UGV's IP address
     UGV_PORT = 12345 # Constant port used for connection; ensure UGV is using it
     

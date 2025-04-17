@@ -75,12 +75,30 @@ def arm_and_takeoff(vehicle, target_alt):
         time.sleep(1)
     time.sleep(4)
 
+def send_ned_velocity( vehicle, velocityX, velocityY, velocityZ):
+	"""
+	Move vehicle in direction specified by velocity vectors
+	Helper method 
+	"""
+	msg = vehicle.message_factory.set_position_target_local_ned_encode(
+		0,      # time_boot_ms (not used)
+		0, 0,   # target system, target component
+		mavutil.mavlink.MAV_FRAME_LOCAL_NED, # frame
+		0b0000111111000111, # type_mask (ensures speed and not position is enabled)
+		0, 0, 0,    # position x, y, z (not used)
+		velocityX, velocityY, velocityZ, # velocity for x, y, z in m/s
+		0, 0, 0,    # accelleration (not used/not supported)
+		0, 0)       # yaw (also not supported)
+	# send command to vehicle
+	vehicle.send_mavlink(msg)
+	vehicle.flush()
+
 # working method for our current search pattern, in consideration for the boundary search pattern of running the script with command line parameters
 # to move physically in a snake search pattern, performing the next subsequent action outlined by the paramter after hitting the boundary
 # note that this method uses body frame velocities to move the drone in a specific direction based on the forward, right, and down speeds
 # this makes the movement relative to the drone instead of relying on compass directions from the GPS
 
-def send_body_velocity(vehicle, forward_speed, right_speed, down_speed, check_interval=0.1):
+def send_body_velocity(vehicle, forward_speed, right_speed, down_speed, check_interval=0.01):
     """
     Continuously sends body-frame velocity commands (m/s) until 'check_marker_func' returns True.
     - forward_speed, right_speed, down_speed: velocity along the drone's body axes
@@ -146,7 +164,7 @@ def send_body_velocity(vehicle, forward_speed, right_speed, down_speed, check_in
 
 
 #kill switch implementation --------------------------------------------
-def emergency_land(vehicle, signal, frame):
+def emergency_land(signal, frame):
     """ Emergency landing function triggered by CTRL+C """
     print("\n Kill switch activated! Landing immediately...")
     vehicle.mode = VehicleMode("LAND")
@@ -164,7 +182,7 @@ def emergency_land(vehicle, signal, frame):
 # Attach the kill switch to SIGINT (CTRL+C)
 signal.signal(signal.SIGINT, emergency_land)
 
-def listen_for_kill(vehicle):
+def listen_for_kill():
     """ Monitors for user input to trigger an emergency stop. """
     while True:
         user_input = input()
@@ -183,6 +201,7 @@ def listen_for_kill(vehicle):
             vehicle.close()  # Close connection safely
             
             print("Done")
+def argParser():
             os._exit(0)  # Forcefully exit the script
 
 # Start the listener in a separate thread
@@ -198,7 +217,6 @@ def land(self):
 
     print("Mode successfully switched to LAND!")
 
-def argParser():
     """
     Function to parse command-line parameters and start the drone search pattern.
     Command-line parameters represent the movement instructions for north, south, west, and east.

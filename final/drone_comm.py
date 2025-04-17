@@ -18,7 +18,16 @@ import socket
 # UGV_PORT should be constant
 def client_init(UGV_IP, UGV_PORT):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect((UGV_IP, UGV_PORT))
+    connected = False
+    
+    while not connected:
+        try:
+            client.connect((UGV_IP, UGV_PORT))
+            connected = True
+        except Exception as e:
+            pass
+    
+    print("UAV client is connected to UGV")
 
     return client
 
