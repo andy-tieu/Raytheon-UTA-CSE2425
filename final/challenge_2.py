@@ -87,7 +87,7 @@ class ArucoDetection:
             center_x, center_y = width // 2, height // 2
 
             # Define error margin square (e.g., 25x25 pixels)
-            # Margin will need testing since it will greatly depend on how high up we are
+            # Margin will need adjusting depending on drone's altitude
             margin = 75
 
             # Draws the rectangle onto our current frame; corners are calculated
@@ -113,8 +113,10 @@ class ArucoDetection:
                             time.sleep(1)
 
                         print("Drone is now in GUIDED mode and hovering.")
-                        log_dropzone_discovery(ids[i]) # ADAM LOGGING
-                        print("DropZone detected")
+
+                        if ids[i] not in self._logged_ids:
+                            log_dropzone_discovery(ids[i]) # ADAM LOGGING
+                            print("DropZone detected")
 
                         # We only care about the location of the drop zone, so all centering code is located within it
                         marker_center = (int(c[:, 0].mean()), int(c[:, 1].mean()))
@@ -153,8 +155,14 @@ class ArucoDetection:
                             self.stopCam()
                             self._centered = True
 
-                            # NOTE: I think if the UAV detect the launchzone ArUco marker, it wiill try to center itself again, so maybe the program will need a 
-                            # flag to stop the UAV from centering/ignore Aruco markers once it is in RTL mode
+                            # Wait until the drone disarms after RTL (meaning it has landed)
+                            while vehicle.armed:
+                                print("Waiting for landing...")
+                                time.sleep(1)
+
+                            print("Drone has landed and disarmed.")
+                            log_end()
+
                         else:
                             # Marker is not centered, adjust UAV position
                             print("Moving...")
@@ -162,7 +170,7 @@ class ArucoDetection:
                             right_speed = 0.1 if dx > 0 else (-0.1 if dx < 0 else 0)    # Move left/right
                             down_speed = 0  # No vertical adjustment for now; can be added if needed
 
-                            # Send velocity commands to adjust UAV position
+                            # Send velocity commands to adjust UAV position; movement is based on drone's direction
                             send_body_velocity(self._vehicle, forward_speed, right_speed, down_speed, check_interval=0.01)
                             print(f"Adjusting position: forward_speed={forward_speed}, right_speed={right_speed}, down_speed={down_speed}")
                             
@@ -203,15 +211,20 @@ class ArucoDetection:
 
                                 print("Drone has landed and disarmed.")
                                 log_end()
-
+                                
                                 # This should prevent drone from continuing program
                                 self.stopCam()
                                 self._centered = True
-
                     else:
+                        if ids[i] not in self._logged_ids:
+                            self._logged_ids.append(ids[i])
+                            log_aruco_discovery(ids[i]) # ADAM LOGGING
+                            print(f"ArUco Marker with ID: {ids[i]} detected")
+
                         print("Non-DropZone detected")
-            """else:
-                print("No markers detected")"""
+            #else:
+                # This can be commented out since it will flood terminal; used for testing
+                #print("No markers detected")
 
             # If gui is set to true, camera feed will show up in a new window
             if self._gui:
@@ -262,6 +275,7 @@ if __name__ == "__main__":
     #kill_thread.start()
 
     # Start detection
+    log_start()
     aruco_detection.detect()
 
 """ END OF MAIN """

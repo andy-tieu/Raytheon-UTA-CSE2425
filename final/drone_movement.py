@@ -2,6 +2,8 @@
 RAYTHEON CSE TEAM 2024-2025
 
 PROGRAM TO RUN UAV DRONE MOVEMENT
+NOTE THAT INCLUDES A TENATIVE IMPLEMENTATION FOR MOVEMENT INDOORS WHILE SLAM IS FULLY DEVELOPED AND TESTED
+THIS BODY VELOCITY METHOD IS NOT THE ONE CALLED IN CAMERA DETECTION PROGRAM, WHICH HAS ITS OWN METHOD FOR ENTERING GUIDE MODE WHEN CORRECT MARKER IS FOUND
 """
 
 """ START OF IMPORTS """
@@ -17,7 +19,7 @@ import os
 import argparse
 import sys
 import threading
-import camera_detection
+import final.challenge_2 as challenge_2
 
 """ END OF IMPORTS """
 
@@ -42,6 +44,32 @@ def drone_connect(conn_str):
 
     return vehicle
 
+def arm():
+    print("Basic pre-arm checks")
+    # Ensures user does not try to arm until autopilot is ready
+    while not vehicle.is_armable:
+        print("Waiting for vehicle to initialize...")
+        time.sleep(1)
+    
+    print("Arming motors")
+    # Copter should arm in poshold mode, note that it should not take off yet
+    vehicle.mode = VehicleMode("POSHOLD")
+    vehicle.armed = True
+
+    while not vehicle.armed:
+        print("Waiting for vehicle to arm...")
+        time.sleep(1)
+
+    # Now switch to AUTO mode to start the mission
+    vehicle.mode = VehicleMode("AUTO")
+    while not vehicle.mode.name == "AUTO":
+        print(f"Waiting for mode change... Current mode: {vehicle.mode.name}")
+        time.sleep(1)
+        
+    print("Vehicle is armed, ready for takeoff in AUTO mode")
+    vehicle_logging.log_start()  # Start logging mission
+
+
 # Function to arm and rise to specified altitude
 def arm_and_takeoff(vehicle, target_alt):
     print("Basic pre-arm checks")
@@ -52,7 +80,7 @@ def arm_and_takeoff(vehicle, target_alt):
 
     print("Arming motors")
 
-    vehicle.mode = VehicleMode("GUIDED")
+    vehicle.mode = VehicleMode("GUIDED_NOGPS")
     vehicle.armed = True
 
     while not vehicle.armed:
@@ -170,43 +198,35 @@ def emergency_land(signal, frame):
     vehicle.mode = VehicleMode("LAND")
     vehicle.flush()  # Ensure MAVLink command is sent
 
+    print("Stopping script...")
     while vehicle.mode.name != "LAND":
         print("Waiting for mode change...")
         time.sleep(1)
     
     print("Mode successfully switched to LAND!")
-    time.sleep(1)
     vehicle.close()
     os._exit(0)
 
-# Attach the kill switch to SIGINT (CTRL+C)
-signal.signal(signal.SIGINT, emergency_land)
+# # Attach the kill switch to SIGINT (CTRL+C)
+# signal.signal(signal.SIGINT, emergency_land)
 
 def listen_for_kill():
     """ Monitors for user input to trigger an emergency stop. """
     while True:
-        user_input = input()
-        if user_input.lower() == "k":
-            print("\n Kill switch activated! Landing immediately...")
-            vehicle.mode = VehicleMode("LAND")
-            vehicle.flush()  # Ensure MAVLink command is sent
-            print("Stopping script...")
+        try:
+            if input.lower() == "k":
+                print("\n Alternate Kill switch activated! Landing immediately...")
+                emergency_land(None, None)
+        except EOFError:
+            # avoid crashing if input stream closes unexpectedly
+            break
 
-            while vehicle.mode.name != "LAND":
-                print("Waiting for mode change...")
-                time.sleep(1)
-
-            print("Mode successfully switched to LAND!")
-            time.sleep(2)  # Give some time for LAND mode to engage
-            vehicle.close()  # Close connection safely
-            
-            print("Done")
 def argParser():
             os._exit(0)  # Forcefully exit the script
 
-# Start the listener in a separate thread
-kill_thread = threading.Thread(target=listen_for_kill, daemon=True)
-kill_thread.start()
+# # Start the listener in a separate thread
+# kill_thread = threading.Thread(target=listen_for_kill, daemon=True)
+# kill_thread.start()
 
 def land(self):
     self.vehicle.mode = VehicleMode("LAND")

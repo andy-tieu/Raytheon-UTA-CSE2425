@@ -49,7 +49,7 @@ def log_aruco_discovery(id):
 
     if debug:
         print(f"ArUco ID {id} discovered.")
-        
+
     f.close()
 
 def log_dropzone_discovery(id):
@@ -60,7 +60,7 @@ def log_dropzone_discovery(id):
     
     if debug:
         print(f"Drop Zone ArUco ID {id} discovered.")
-        
+
     f.close()
 
 def log_dropzone_location(id, coordinates):
@@ -71,7 +71,7 @@ def log_dropzone_location(id, coordinates):
     
     if debug:
         print(f"Drop Zone ArUco ID {id} is at {coordinates}.")
-        
+
     f.close()
 
 def log_comm_transmit(msg):

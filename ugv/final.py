@@ -5,6 +5,9 @@ from pymavlink import mavutil
 # make sure this module is uploaded to the UGV RPi
 from vehicle_logging import log_comm_receive, log_delivery, log_end
 
+# required for log_start() to have a file to write to
+filename = "ugv_status.txt"     # Log file name
+
 # Connect to the UGV
 vehicle = connect('/dev/serial0', baud=57600, wait_ready=True)
 print("Preliminary Checks")
@@ -14,6 +17,7 @@ print("UGV Pi is Connected to Pixhawk!\n")
 # Set the servo to its initial position (1300)
 vehicle.channels.overrides['8'] = 2000
 print("Delivery Gate Up!\n")
+# why isn't all of this in main lol
 
 def clear_mission():
     """
@@ -57,6 +61,9 @@ def start_socket_server(host='0.0.0.0', port=12345):
         print("------------------------------------------------------\n")
         # Clear the mission before adding new waypoints
         clear_mission()
+
+        # now log the start of the UGV mission
+        log_start()
 
         # Receive data
         data = conn.recv(1024).decode()
@@ -107,7 +114,7 @@ def start_socket_server(host='0.0.0.0', port=12345):
 
                 # UGV End Time
                 print(f"Timestamp (Mission Complete): {time.strftime('%Y-%m-%d %H:%M:%S')}")
-                vehicle_logging.log_end()
+                log_end()
             except ValueError:
                 conn.send("Invalid coordinate format.".encode())
                 print("Invalid data format received.")
