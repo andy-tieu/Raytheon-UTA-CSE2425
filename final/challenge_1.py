@@ -94,7 +94,7 @@ class ArucoDetection:
                 # Draws on top of the actual frame (since we convert to BGR, it will allow the drawing to work since otherwise it will error out)
                 cv2.aruco.drawDetectedMarkers(frame_bgr, corners, ids)
                 
-                log_aruco_discovery(ids) # ADAM LOGGING
+                log_aruco_discovery(ids)
                 print(f"ArUco Marker with ID: {ids} detected")
                 
                 for i in range(len(ids)):
@@ -110,7 +110,7 @@ class ArucoDetection:
                             time.sleep(1)
 
                         print("Drone is now in GUIDED mode and hovering.")
-                        log_dropzone_discovery(ids[i]) # ADAM LOGGING
+                        log_dropzone_discovery(ids[i])
                         print("Dropzone Detected!")
 
                         # We only care about the location of the drop zone, so all centering code is located within it
@@ -130,9 +130,8 @@ class ArucoDetection:
 
                             # Prepare data to send
                             coordinates_str = f"{latitude},{longitude},{altitude}"
-                            #send_msg(self._client, coordinates_str) # Change out msg to coordinates_str when needed
-                            log_comm_transmit(coordinates_str) # ADAM LOGGING
-                            log_dropzone_location(ids[i], coordinates_str) # ADAM LOGGING
+                            log_comm_transmit(coordinates_str)
+                            log_dropzone_location(ids[i], coordinates_str)
 
                             # After the marker is centered and coordinates are sent, the UAV is returned to launch point
                             # This portion of code can also be replaced with landing the drone at a specific landing zone
@@ -159,9 +158,6 @@ class ArucoDetection:
                             # This should prevent drone from continuing program
                             self.stopCam()
                             self._centered = True
-
-                            # NOTE: I think if the UAV detect the launchzone ArUco marker, it wiill try to center itself again, so maybe the program will need a 
-                            # flag to stop the UAV from centering/ignore Aruco markers once it is in RTL mode
                         else:
                             # Marker is not centered, adjust UAV position
                             print("Moving...")
@@ -187,9 +183,8 @@ class ArucoDetection:
 
                                 # Prepare data to send
                                 coordinates_str = f"{latitude},{longitude},{altitude}"
-                                #send_msg(self._client, coordinates_str) # Change out msg to coordinates_str when needed
-                                log_comm_transmit(coordinates_str) # ADAM LOGGING
-                                log_dropzone_location(ids[i], coordinates_str) # ADAM LOGGING
+                                log_comm_transmit(coordinates_str)
+                                log_dropzone_location(ids[i], coordinates_str)
 
                                 # After the marker is centered and coordinates are sent, the UAV is returned to launch point
                                 # This portion of code can also be replaced with landing the drone at a specific landing zone
@@ -221,7 +216,7 @@ class ArucoDetection:
                     else:
                         if ids[i] not in self._logged_ids:
                             self._logged_ids.append(ids[i])
-                            log_aruco_discovery(ids) # ADAM LOGGING
+                            log_aruco_discovery(ids)
                             print(f"ArUco Marker with ID: {ids} detected")
                         
                         print("Non-DropZone detected")
