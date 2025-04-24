@@ -6,16 +6,15 @@ PROGRAM TO RUN CAMERA AND ARUCO MARKER DETECTION
 
 """ START OF IMPORTS """
 
-# Dependencies; need to be installed
-import cv2 # opencv
-from picamera2 import Picamera2 # for RPi camera module use
-
 # Usual Python imports
 import time
 
+# Dependencies; need to be installed
+import cv2  # opencv
 # Other imports
 from drone_comm import *
 from drone_movement import *
+from picamera2 import Picamera2  # for RPi camera module use
 from vehicle_logging import *
 
 """ END OF IMPORTS """
@@ -45,15 +44,12 @@ class ArucoDetection:
         self._picam2.start()
         self._gui = gui
 
-        # Socket client to send coordinates when needed
-        #self._client = client
-
+        # Checks
         self._centered = False
         self._timeout = 0
         
         # Set to track logged ArUco IDs
         self._logged_ids = list()
-        self._dropzoneflag = False
 
     def stopCam(self):
         # Turn off camera when needed
@@ -76,7 +72,7 @@ class ArucoDetection:
 
             # Takes in the image, dictionary, and parameters to the first, second, and fifth parameters
             # Returns detected corners, id of the marker, and any conrner points of rejected markers
-            corners, ids, rejected_img_points = cv2.aruco.detectMarkers(gray, self._arucoDict, parameters=self._parameters)    
+            corners, ids, rejected_img_points = cv2.aruco.detectMarkers(gray, self._arucoDict, parameters=self._parameters)
 
             # Convert to BGR, otherwise the display will have issues
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -92,7 +88,6 @@ class ArucoDetection:
 
             # Draws the rectangle onto our current frame; corners are calculated
             cv2.rectangle(frame_bgr, (center_x - margin, center_y - margin), (center_x + margin, center_y + margin), (0, 255, 0), 2)
-            
             
             if ids is not None:
                 # Draws on top of the actual frame (since we convert to BGR, it will allow the drawing to work since otherwise it will error out)
@@ -120,7 +115,7 @@ class ArucoDetection:
                         # We only care about the location of the drop zone, so all centering code is located within it
                         marker_center = (int(c[:, 0].mean()), int(c[:, 1].mean()))
                         cv2.circle(frame_bgr, marker_center, 5, (0, 0, 255), -1)
-                        dx, dy = marker_center[0] - center_x, marker_center[1] - center_y                        
+                        dx, dy = marker_center[0] - center_x, marker_center[1] - center_y
 
                         if (center_x - margin <= marker_center[0] <= center_x + margin) and (center_y - margin <= marker_center[1] <= center_y + margin):
                             print("Marker centered!")
@@ -142,7 +137,6 @@ class ArucoDetection:
                             # This portion of code can also be replaced with landing the drone at a specific landing zone
                             print("Returning to launch point...")
                             self._vehicle.mode = VehicleMode("RTL")
-                            # self._vehicle.flush()
 
                             while self._vehicle.mode.name != "RTL":
                                 print("Waiting for mode change...")
@@ -155,8 +149,8 @@ class ArucoDetection:
                                 print("Waiting for landing...")
                                 time.sleep(1)
                                 
-                            client = client_init(UGV_IP, UGV_PORT)   
-                            time.sleep(1) 
+                            client = client_init(UGV_IP, UGV_PORT)
+                            time.sleep(1)
                             send_msg(client, coordinates_str) # Change out msg to coordinates_str when needed
 
                             print("\033[32mDrone has landed and disarmed.\033[0m")
@@ -202,7 +196,6 @@ class ArucoDetection:
                                 # This portion of code can also be replaced with landing the drone at a specific landing zone
                                 print("Returning to launch point...")
                                 self._vehicle.mode = VehicleMode("RTL")
-                                # self._vehicle.flush()
 
                                 while self._vehicle.mode.name != "RTL":
                                     print("Waiting for mode change...")
@@ -216,7 +209,7 @@ class ArucoDetection:
                                     time.sleep(1)
                                     
                                 client = client_init(UGV_IP, UGV_PORT)
-                                time.sleep(1)    
+                                time.sleep(1)
                                 send_msg(client, coordinates_str) # Change out msg to coordinates_str when needed
 
                                 print("\033[32mDrone has landed and disarmed.\033[0m")
@@ -272,8 +265,6 @@ if __name__ == "__main__":
     # Change dropzone ID here to whichever is given at competition
     DROPZONE = 4 # Change to ID 4 for challenge 2
 
-    # Create client object
-    #client = client_init(UGV_IP, UGV_PORT)
     # Start logging with start
     log_start()
     
